@@ -1,158 +1,194 @@
 import React, { useEffect, useState } from 'react'
-import { View, Image } from 'react-native'
+import { FlatList, View, ImageBackground, Image, TouchableOpacity } from 'react-native'
 import { Avatar, Button, Divider, FAB, IconButton, Modal, Portal, Text, TextInput } from 'react-native-paper'
 import { styles } from '../../theme/styles'
-import  firebase, { updateProfile }  from 'firebase/auth';
-import { auth } from '../../configs/firebaseConfig';
-import { signInWithPhoneNumber } from 'firebase/auth';
-import handlerSetValues from 'react';
-import { FlatList } from 'react-native-gesture-handler';
-import { Item } from 'react-native-paper/lib/typescript/components/Drawer/Drawer';
+import firebase, { signOut, updateProfile } from 'firebase/auth';
+import { auth, dbRealTime } from '../../configs/firebaseConfig';
 import { MessageCardComponent } from './components/MessageCardComponent';
 import { NewMessageComponent } from './components/NewMessageComponent';
+import { onValue, ref } from 'firebase/database';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 
+//Interface - formulario perfil
 interface FormUser {
-  name: string;
-  phoneNumber: string;
+    name: string;
 }
 
-interface Message {
-  id: string;
-  to: string;
-  subject: string;
-  message: string;
+//Interface - Message
+export interface Message {
+    id: string;
+    to: string;
+    subject: string;
+    message: string;
 }
-
-const imageUrls = [
-  'https://ticotrades.com/cdn/shop/files/CAUS_199.jpg?v=1714989744',
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBz4lCpHAiYpmZ8vLBkanP4MbhvqZ-KQxTHA&s',
-  'https://http2.mlstatic.com/D_NQ_NP_932446-MLU75181506843_032024-O.webp',
-  'https://http2.mlstatic.com/D_NQ_NP_861654-MLA75291556769_032024-O.webp',
-];
 
 export const HomeScreen = () => {
-  const [formUser, setFormUser] = useState<FormUser>({
-    name: '',
-    phoneNumber: '',
-  });
 
-  const [userUth, setUserAuth] = useState<firebase.User | null>(null);
-
-  useEffect(() => {
-    setUserAuth(auth.currentUser);
-    setFormUser({
-      name: auth.currentUser?.displayName ?? "",
-      phoneNumber: ''
+    //hook useState: manipular el formulario del perfil de usuario
+    const [formUser, setFormUser] = useState<FormUser>({
+        name: ''
     });
-  }, []);
 
-  const [showModalProfile, setShowModalProfile] = useState<boolean>(false);
-  const [showModalMessage, setShowModalMessage] = useState<boolean>(false);
+    //hook useState: capturar la data del usuario logueado
+    const [userAuth, setUserAuth] = useState<firebase.User | null>(null);
 
-  const handlerSetValues = (key: string, value: string) => {
-    setFormUser({ ...formUser, [key]: value });
-  }
+    //hook useState: lista de mensajes
+    const [messages, setMessages] = useState<Message[]>([]);
 
-  const handlerUpdateUser = async () => {
-    await updateProfile(userUth!, {
-      displayName: formUser.name
-    });
-    setShowModalProfile(false);
-  }
+    //useEffect: capturar la data del usuario autenticado
+    useEffect(() => {
+        //Obtener la data del usuario autenticado
+        setUserAuth(auth.currentUser);
+        //console.log(auth.currentUser);
+        setFormUser({ name: auth.currentUser?.displayName ?? "" })
+        //Función para listar mensajes
+        getAllMessages();
+    }, []);
 
-  return (
-    <>
-      <View style={styles.routeHome}>
-        <View style={styles.header}>
-          <Avatar.Text
-            size={24} label="MI" />
-          <View style={styles.textContainer}>
-            <Text style={styles.textHome} variant='bodySmall'>Bienvenido</Text>
-            <Text style={styles.textHome} variant='labelLarge'>{userUth?.displayName}</Text>
-            {formUser.phoneNumber ? (
-              <Text style={styles.textHome} variant='bodySmall'>{formUser.phoneNumber}</Text>
-            ) : null}
-          </View>
-          <View style={styles.iconEnd}>
-            <IconButton
-              icon="account-edit"
-              size={30}
-              mode='contained'
-              onPress={() => { setShowModalProfile(true) }}
-            />
-          </View>
-        </View>
-        <View>
-        <Text style={styles.textGame}>
-            Album Copa America 2024
-          </Text>
-          <Text style={styles.textGame}>
-            ------------------------------------------------------
-          </Text>
-        </View>
-        <View>
-          <Text style={styles.textGame}>
-            Tus Figuras
-          </Text>
-          <FlatList
-            data={imageUrls}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.image} />
-            )}
-            keyExtractor={(item, index) => index.toString()}
-            horizontal
-          />
-        </View>
-        <View>
-          <FlatList
-            data={imageUrls}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.image} />
-            )}
-            keyExtractor={(item, index) => index.toString()}
-            horizontal
-          />
-        </View>
-      </View>
-      <Portal>
-        <Modal visible={showModalProfile} contentContainerStyle={styles.modal}>
-          <View style={styles.header}>
-            <Text variant='headlineMedium'>Mi perfil</Text>
-            <View style={styles.iconEnd}>
-              <IconButton icon='close-circle-outline' size={30} onPress={() => setShowModalProfile(false)} />
-            </View>
-          </View>
-          <Divider />
-          <TextInput
-            mode='outlined'
-            label='Nombre'
-            value={formUser.name}
-            onChangeText={(value) => handlerSetValues('name', value)}
-          />
-          <TextInput
-            mode='outlined'
-            label='Correo'
-            value={userUth?.email!}
-            disabled
-          />
-          <TextInput
-            mode='outlined'
-            label='Número de Teléfono'
-            value={formUser.phoneNumber}
-            onChangeText={(value) => handlerSetValues('phoneNumber', value)}
-          />
-          <Button style={styles.button2} mode='contained' onPress={handlerUpdateUser}>
-            Actualizar
-          </Button>
-        </Modal>
-      </Portal>
-      <FAB
-        style={styles.fabMessage}
-        icon="plus"
-        onPress={() => setShowModalMessage(true)}
-      />
-      <NewMessageComponent showModalMessage={showModalMessage} setShowModalMessage={setShowModalMessage} />
-    </>
-  );
+    //hook useState: mostrar u ocultar el modal del perfil
+    const [showModalProfile, setShowModalProfile] = useState<boolean>(false);
+
+    //hook useState: mostrar u ocultar el modal del message
+    const [showModalMessage, setShowModalMessage] = useState<boolean>(false);
+
+    //hook navegación
+    const navigation = useNavigation();
+
+    //Función para cambiar los datos del formulario
+    const handlerSetValues = (key: string, value: string) => {
+        setFormUser({ ...formUser, [key]: value })
+    }
+
+    //Función actualizar la data del usuario autenticado
+    const handlerUpdateUser = async () => {
+        await updateProfile(userAuth!, {
+            displayName: formUser.name
+        });
+        setShowModalProfile(false);
+    }
+
+    //Función para acceder a la data
+    const getAllMessages = () => {
+        //1. Refrencia a la BDD - tabla
+        const dbRef = ref(dbRealTime, 'messages/' + auth.currentUser?.uid);
+        //2. Consultamos a la BDD
+        onValue(dbRef, (snapshot) => {
+            //3. Capturar la data
+            const data = snapshot.val(); // formato esperado
+            //CONTROLAR QUE LA DATA TENGA INFORMACIÓN
+            if (!data) return;
+            //4. Obtener keys de los mensajes
+            const getKeys = Object.keys(data);
+            //5. Crear un arreglo para almacenar los mensajes de la BDD
+            const listMessages: Message[] = [];
+            getKeys.forEach((key) => {
+                const value = { ...data[key], id: key }
+                listMessages.push(value);
+            })
+            //6. Almacenar en el arreglo del hook
+            setMessages(listMessages);
+        })
+    }
+
+    //Función para cerrar sesión
+    const handlerSignOut = async () => {
+        await signOut(auth);
+        //resetear las rutas
+        //navigation.dispatch(CommonActions.navigate({ name: 'Login' }));
+        navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] }))
+    }
+
+    return (
+        <>
+            <ImageBackground
+                source={{ uri: 'https://i.pinimg.com/564x/08/d7/be/08d7be00d40aac61f47717b10fbb32a8.jpg' }}
+                style={styles.backgroundImage}
+                imageStyle={{ opacity: 0.4 }}
+            >
+                <View style={styles.routeHome}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Image
+                            source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9U8oJgaoX_sKBGkRSLz-ZJhD7Pbwd3uwMIA&s' }} // Reemplaza con la URL de tu imagen
+                            style={styles.iconImageProfile}
+                        />
+                        <View style={styles.textContainer}>
+                            <Text style={styles.labelLargeGoats}>THE GOATS FC</Text>
+                            <Text style={styles.labelLarge}>Bienvenido</Text>
+                            <Text style={styles.bodySmall}>{userAuth?.displayName}</Text>
+                        </View>
+                        <Image
+                            source={{ uri: 'https://thumbs.dreamstime.com/b/modern-mountain-goat-head-logo-creative-concept-vector-format-scalable-to-any-size-modern-mountain-goat-head-logo-creative-193184152.jpg' }} 
+                            style={styles.iconImage}
+                        />
+                    </View>
+                    <Text style={styles.textJuego}>Personaliza tu equipo de GOATS</Text>
+                    <TouchableOpacity
+                        style={styles.buttonJuego}
+                        onPress={() => navigation.dispatch(CommonActions.navigate({ name: 'Juego' }))}>
+                       <Text style={styles.buttonText}>
+                        <MaterialIcons name="goat" size={20}  style={styles.iconCabra} /> Que empiece el Partido <MaterialIcons name="goat" size={20}  style={styles.iconCabra} />
+                        </Text>
+                    </TouchableOpacity>
+                    <Text style={styles.textContainerCards}>Mensajes</Text>
+
+                    <View>
+                        <FlatList
+                            data={messages}
+                            renderItem={({ item }) => <MessageCardComponent message={item} />}
+                            keyExtractor={item => item.id}
+                        />
+                    </View>
+                </View>
+
+                <IconButton
+                    size={40} icon="account-edit" style={styles.avatarLogOut}
+                    onPress={() => setShowModalProfile(true)}
+                />
+                <IconButton
+                    size={40} icon="plus" style={styles.avatarLogOut}
+                    onPress={() => setShowModalMessage(true)}
+                />
+                <IconButton
+                    icon="logout"
+                    size={40}
+                    style={styles.avatarLogOut}
+                    onPress={handlerSignOut}
+                />
+
+                <Portal>
+                    <Modal visible={showModalProfile} contentContainerStyle={styles.modal}>
+                        <View style={styles.headerModal}>
+                            <Text style={styles.ModalText}>Mi Perfil</Text>
+                            <View style={styles.iconEndModal}>
+                                <IconButton
+                                    icon='close-circle-outline'
+                                    size={30}
+                                    onPress={() => setShowModalProfile(false)} />
+                            </View>
+                        </View>
+                        <Divider />
+                        <TextInput
+                            mode='flat'
+                            style={styles.textInput}
+                            theme={{ colors: { placeholder: '#333', text: '#333', primary: '#333', background: 'transparent' }, roundness: 10 }}
+                            label='Nombre'
+                            value={formUser.name}
+                            onChangeText={(value) => handlerSetValues('name', value)} />
+                        <TextInput
+                            mode='flat'
+                            style={styles.textInput}
+                            theme={{ colors: { placeholder: '#333', text: '#333', primary: '#333', background: 'transparent' }, roundness: 10 }}
+                            label='Correo'
+                            value={userAuth?.email!}
+                            disabled />
+                        <Button mode='contained' onPress={handlerUpdateUser} style={styles.buttonModal} labelStyle={styles.buttonTextModal}>Actualizar</Button>
+                    </Modal>
+                </Portal>
+
+                <NewMessageComponent showModalMessage={showModalMessage} setShowModalMessage={setShowModalMessage} />
+
+            </ImageBackground>
+        </>
+    )
 }
-export default HomeScreen;

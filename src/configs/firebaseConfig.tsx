@@ -12,13 +12,13 @@ const firebaseConfig = {
   projectId: "juego-martin",
   storageBucket: "juego-martin.appspot.com",
   messagingSenderId: "808741423040",
-  appId: "1:808741423040:web:9a3192bbf74d710990aa25"
+  appId: "1:808741423040:web:9a3192bbf74d710990aa25",
+  databaseURL: "https://juego-martin-default-rtdb.firebaseio.com/"
 };
-// Initialize Firebase
 const firebase = initializeApp(firebaseConfig);
 //export const auth = getAuth(firebase);
 export const auth = initializeAuth(firebase, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });
 //referencia al servicio de data base
-export const database = getDatabase(firebase);
+export const dbRealTime = getDatabase(firebase);
