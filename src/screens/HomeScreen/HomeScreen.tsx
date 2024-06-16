@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import { FlatList, View, ImageBackground, Image, TouchableOpacity } from 'react-native'
-import { Avatar, Button, Divider, FAB, IconButton, Modal, Portal, Text, TextInput } from 'react-native-paper'
-import { styles } from '../../theme/styles'
+import React, { useEffect, useState } from 'react';
+import { FlatList, View, ImageBackground, Image, TouchableOpacity } from 'react-native';
+import { Avatar, Button, Divider, FAB, IconButton, Modal, Portal, Text, TextInput } from 'react-native-paper';
 import firebase, { signOut, updateProfile } from 'firebase/auth';
 import { auth, dbRealTime } from '../../configs/firebaseConfig';
 import { MessageCardComponent } from './components/MessageCardComponent';
@@ -9,13 +8,14 @@ import { NewMessageComponent } from './components/NewMessageComponent';
 import { onValue, ref } from 'firebase/database';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { styles } from '../../theme/styles'; // Asegúrate de importar tus estilos
 
-//Interface - formulario perfil
+// Interface - formulario perfil
 interface FormUser {
     name: string;
 }
 
-//Interface - Message
+// Interface - Message
 export interface Message {
     id: string;
     to: string;
@@ -24,43 +24,41 @@ export interface Message {
 }
 
 export const HomeScreen = () => {
-
-    //hook useState: manipular el formulario del perfil de usuario
+    // hook useState: manipular el formulario del perfil de usuario
     const [formUser, setFormUser] = useState<FormUser>({
         name: ''
     });
 
-    //hook useState: capturar la data del usuario logueado
+    // hook useState: capturar la data del usuario logueado
     const [userAuth, setUserAuth] = useState<firebase.User | null>(null);
 
-    //hook useState: lista de mensajes
+    // hook useState: lista de mensajes
     const [messages, setMessages] = useState<Message[]>([]);
 
-    //useEffect: capturar la data del usuario autenticado
+    // useEffect: capturar la data del usuario autenticado
     useEffect(() => {
-        //Obtener la data del usuario autenticado
+        // Obtener la data del usuario autenticado
         setUserAuth(auth.currentUser);
-        //console.log(auth.currentUser);
-        setFormUser({ name: auth.currentUser?.displayName ?? "" })
-        //Función para listar mensajes
+        setFormUser({ name: auth.currentUser?.displayName ?? "" });
+        // Función para listar mensajes
         getAllMessages();
     }, []);
 
-    //hook useState: mostrar u ocultar el modal del perfil
+    // hook useState: mostrar u ocultar el modal del perfil
     const [showModalProfile, setShowModalProfile] = useState<boolean>(false);
 
-    //hook useState: mostrar u ocultar el modal del message
+    // hook useState: mostrar u ocultar el modal del message
     const [showModalMessage, setShowModalMessage] = useState<boolean>(false);
 
-    //hook navegación
+    // hook navegación
     const navigation = useNavigation();
 
-    //Función para cambiar los datos del formulario
+    // Función para cambiar los datos del formulario
     const handlerSetValues = (key: string, value: string) => {
-        setFormUser({ ...formUser, [key]: value })
+        setFormUser({ ...formUser, [key]: value });
     }
 
-    //Función actualizar la data del usuario autenticado
+    // Función actualizar la data del usuario autenticado
     const handlerUpdateUser = async () => {
         await updateProfile(userAuth!, {
             displayName: formUser.name
@@ -68,35 +66,33 @@ export const HomeScreen = () => {
         setShowModalProfile(false);
     }
 
-    //Función para acceder a la data
+    // Función para acceder a la data
     const getAllMessages = () => {
-        //1. Refrencia a la BDD - tabla
+        // Refrencia a la BDD - tabla
         const dbRef = ref(dbRealTime, 'messages/' + auth.currentUser?.uid);
-        //2. Consultamos a la BDD
+        // Consultamos a la BDD
         onValue(dbRef, (snapshot) => {
-            //3. Capturar la data
+            // Capturar la data
             const data = snapshot.val(); // formato esperado
-            //CONTROLAR QUE LA DATA TENGA INFORMACIÓN
+            // Controlar que la data tenga información
             if (!data) return;
-            //4. Obtener keys de los mensajes
+            // Obtener keys de los mensajes
             const getKeys = Object.keys(data);
-            //5. Crear un arreglo para almacenar los mensajes de la BDD
+            // Crear un arreglo para almacenar los mensajes de la BDD
             const listMessages: Message[] = [];
             getKeys.forEach((key) => {
-                const value = { ...data[key], id: key }
+                const value = { ...data[key], id: key };
                 listMessages.push(value);
-            })
-            //6. Almacenar en el arreglo del hook
+            });
+            // Almacenar en el arreglo del hook
             setMessages(listMessages);
-        })
+        });
     }
 
-    //Función para cerrar sesión
+    // Función para cerrar sesión
     const handlerSignOut = async () => {
         await signOut(auth);
-        //resetear las rutas
-        //navigation.dispatch(CommonActions.navigate({ name: 'Login' }));
-        navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] }))
+        navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] }));
     }
 
     return (
@@ -125,20 +121,18 @@ export const HomeScreen = () => {
                     <Text style={styles.textJuego}>Personaliza tu equipo de GOATS</Text>
                     <TouchableOpacity
                         style={styles.buttonJuego}
-                        onPress={() => navigation.dispatch(CommonActions.navigate({ name: 'Juego' }))}>
-                       <Text style={styles.buttonText}>
-                        <MaterialIcons name="goat" size={20}  style={styles.iconCabra} /> Que empiece el Partido <MaterialIcons name="goat" size={20}  style={styles.iconCabra} />
+                        onPress={() => navigation.dispatch(CommonActions.navigate({ name: 'Juego', params: { username: formUser.name } }))}
+                    >
+                        <Text style={styles.buttonText}>
+                            <MaterialIcons name="goat" size={20} style={styles.iconCabra} /> Que empiece el Partido <MaterialIcons name="goat" size={20} style={styles.iconCabra} />
                         </Text>
                     </TouchableOpacity>
                     <Text style={styles.textContainerCards}>Mensajes</Text>
-
-                    <View>
-                        <FlatList
-                            data={messages}
-                            renderItem={({ item }) => <MessageCardComponent message={item} />}
-                            keyExtractor={item => item.id}
-                        />
-                    </View>
+                    <FlatList
+                        data={messages}
+                        renderItem={({ item }) => <MessageCardComponent message={item} />}
+                        keyExtractor={item => item.id}
+                    />
                 </View>
 
                 <IconButton
@@ -187,7 +181,6 @@ export const HomeScreen = () => {
                 </Portal>
 
                 <NewMessageComponent showModalMessage={showModalMessage} setShowModalMessage={setShowModalMessage} />
-
             </ImageBackground>
         </>
     )
