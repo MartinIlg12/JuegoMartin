@@ -12,7 +12,7 @@ interface SelectedPlayersScreenProps {
     route: {
         params: {
             players: Player[];
-            username: string; // Asegúrate de que esto esté presente en los parámetros de la ruta
+            username: string; 
         };
     };
 }

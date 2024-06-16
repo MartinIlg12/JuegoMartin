@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import PlayerSelection from '../../screens/Juego/PlayerSelection';
 import GameField from '../../screens/Juego/GameField';
-import { Player } from './Player'; // Asegúrate de que la interfaz Player esté correctamente importada
+import { Player } from './Player'; 
 
 const allowedOrder = [
     { position: 'PO', count: 1 },
     { position: 'LI', count: 1 },
-    { position: 'DFC D', count: 2 }, // Defensa central derecho (corregido de DFC)
-    { position: 'DFC I', count: 2 }, // Defensa central izquierdo (corregido de DFC)
+    { position: 'DFC D', count: 2 }, 
+    { position: 'DFC I', count: 2 }, 
     { position: 'LD', count: 1 },
     { position: 'MCD', count: 1 },
-    { position: 'MCO D', count: 2 }, // Mediocampista ofensivo derecho (corregido de MCO)
-    { position: 'MCO I', count: 2 }, // Mediocampista ofensivo izquierdo (corregido de MCO)
+    { position: 'MCO D', count: 2 }, 
+    { position: 'MCO I', count: 2 }, 
     { position: 'EI', count: 1 },
     { position: 'ED', count: 1 },
     { position: 'DC', count: 1 }
@@ -27,7 +27,7 @@ export const Juego = () => {
             return;
         }
 
-        // Validar si ya se han seleccionado 11 jugadores
+        
         if (selectedPlayers.length >= 11) {
             alert('Ya tienes 11 jugadores en el campo.');
             return;
@@ -48,7 +48,7 @@ export const Juego = () => {
             return;
         }
 
-        // Si todo está validado, agregar el jugador seleccionado al estado
+
         setSelectedPlayers([...selectedPlayers, player]);
         alert('Jugador añadido.');
     };
