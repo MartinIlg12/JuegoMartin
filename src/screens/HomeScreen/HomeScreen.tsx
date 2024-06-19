@@ -93,7 +93,7 @@ export const HomeScreen = () => {
         });
     }
 
-    // Función para obtener el puntaje de "Química" desde Firebase
+    // Función para obtener el puntaje de Puntaje
     const getOverallScore = () => {
         if (auth.currentUser) {
             const scoreRef = ref(dbRealTime, `users/${auth.currentUser.uid}/overallScore`);

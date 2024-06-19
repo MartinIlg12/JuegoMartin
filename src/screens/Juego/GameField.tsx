@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { Player } from './Player'; 
 
@@ -17,7 +18,13 @@ const GameField: React.FC<GameFieldProps> = ({ players }) => {
 
     return (
         <View style={styles.field}>
-            <Button title="Mira tu 11 de GOATS" onPress={handleShowPlayersPress} />
+            <Button
+                    mode='contained'
+                    icon='eye'
+                    onPress={handleShowPlayersPress}
+                    style={styles.buttonDetail}>
+                    Mira tu 11 de GOATS
+                </Button>
         </View>
     );
 };
@@ -27,6 +34,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'white',
+    },
+    buttonDetail: {
+        marginTop: 20,
+        backgroundColor: '#3498db', 
     },
 });
 

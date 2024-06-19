@@ -96,7 +96,7 @@ const SelectedPlayersScreen: React.FC<SelectedPlayersScreenProps> = ({ route }) 
 
         setOverallScore(overallScore);
 
-        // Guardar el puntaje en Firebase
+
         saveOverallScoreToFirebase(overallScore);
     }, [players]);
 
@@ -133,11 +133,18 @@ const SelectedPlayersScreen: React.FC<SelectedPlayersScreenProps> = ({ route }) 
 
             <View style={styles.container}>
             <IconButton
+                    icon="home"
+                    size={30}
+                    onPress={() => navigation.dispatch(CommonActions.navigate({ name: 'Home' }))}
+                    style={styles.avatarLogOut}
+                />
+            <IconButton
                     icon="arrow-left"
                     size={30}
                     onPress={() => navigation.dispatch(CommonActions.navigate({ name: 'Juego' }))}
-                    style={styles.avatarLogOut}
+                    style={styles.avatarHome}
                 />
+                
                 {players.map(player => (
                     <TouchableOpacity
                         key={player.id}
@@ -415,6 +422,11 @@ const styles = StyleSheet.create({
         marginTop: 660,
         marginRight: 11,
     },
+    avatarHome:{
+        backgroundColor: '#ffffff',
+        alignSelf: 'flex-end',
+        marginRight: 11,
+    }
     
 });
 
