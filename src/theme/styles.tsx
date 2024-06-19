@@ -204,6 +204,7 @@ export const styles=StyleSheet.create({
     },
     container: {
         flex: 1,
+        marginTop:50,
         backgroundColor: '#ffffff',
     },
     iconContainer: {
@@ -215,7 +216,7 @@ export const styles=StyleSheet.create({
         color: '#333333',
     },
     cardContainer: {
-        marginTop:5,
+        marginTop:1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -234,7 +235,7 @@ export const styles=StyleSheet.create({
     },
     cardContent: {
         flex: 1,
-        marginTop: 5,
+        marginTop: 10,
     },
     labelLargeCard: {
         fontSize: 18,

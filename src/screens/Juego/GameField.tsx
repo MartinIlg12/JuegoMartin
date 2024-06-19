@@ -17,7 +17,7 @@ const GameField: React.FC<GameFieldProps> = ({ players }) => {
 
     return (
         <View style={styles.field}>
-            <Button title="Show Selected Players" onPress={handleShowPlayersPress} />
+            <Button title="Mira tu 11 de GOATS" onPress={handleShowPlayersPress} />
         </View>
     );
 };

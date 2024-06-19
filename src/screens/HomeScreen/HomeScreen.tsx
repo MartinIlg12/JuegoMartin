@@ -35,6 +35,9 @@ export const HomeScreen = () => {
     // hook useState: lista de mensajes
     const [messages, setMessages] = useState<Message[]>([]);
 
+    // hook useState: puntaje de "Química"
+    const [overallScore, setOverallScore] = useState<number | null>(null);
+
     // useEffect: capturar la data del usuario autenticado
     useEffect(() => {
         // Obtener la data del usuario autenticado
@@ -42,6 +45,7 @@ export const HomeScreen = () => {
         setFormUser({ name: auth.currentUser?.displayName ?? "" });
         // Función para listar mensajes
         getAllMessages();
+        getOverallScore(); // Llamar la función para obtener el puntaje de "Química"
     }, []);
 
     // hook useState: mostrar u ocultar el modal del perfil
@@ -89,6 +93,19 @@ export const HomeScreen = () => {
         });
     }
 
+    // Función para obtener el puntaje de "Química" desde Firebase
+    const getOverallScore = () => {
+        if (auth.currentUser) {
+            const scoreRef = ref(dbRealTime, `users/${auth.currentUser.uid}/overallScore`);
+            onValue(scoreRef, (snapshot) => {
+                const score = snapshot.val();
+                if (score !== null) {
+                    setOverallScore(score);
+                }
+            });
+        }
+    }
+
     // Función para cerrar sesión
     const handlerSignOut = async () => {
         await signOut(auth);
@@ -112,6 +129,7 @@ export const HomeScreen = () => {
                             <Text style={styles.labelLargeGoats}>THE GOATS FC</Text>
                             <Text style={styles.labelLarge}>Bienvenido</Text>
                             <Text style={styles.bodySmall}>{userAuth?.displayName}</Text>
+                            <Text style={styles.bodySmall}>Química: {overallScore !== null ? `${overallScore}/100` : 'Cargando...'}</Text>
                         </View>
                         <Image
                             source={{ uri: 'https://thumbs.dreamstime.com/b/modern-mountain-goat-head-logo-creative-concept-vector-format-scalable-to-any-size-modern-mountain-goat-head-logo-creative-193184152.jpg' }} 
@@ -133,8 +151,8 @@ export const HomeScreen = () => {
                         renderItem={({ item }) => <MessageCardComponent message={item} />}
                         keyExtractor={item => item.id}
                     />
-                </View>
 
+                </View>
                 <IconButton
                     size={40} icon="account-edit" style={styles.avatarLogOut}
                     onPress={() => setShowModalProfile(true)}
@@ -182,6 +200,7 @@ export const HomeScreen = () => {
 
                 <NewMessageComponent showModalMessage={showModalMessage} setShowModalMessage={setShowModalMessage} />
             </ImageBackground>
+            
         </>
     )
 }
