@@ -34,9 +34,9 @@ export const styles=StyleSheet.create({
         justifyContent: 'center',
     },
     inputs: {
-        backgroundColor: 'rgba(255, 255, 255, 0.5)', 
+        backgroundColor: 'black', 
         width: '90%', 
-        color: '#ffffff',
+        color: '#000',
         borderRadius: 10,
     },
     text:{
@@ -216,10 +216,8 @@ export const styles=StyleSheet.create({
         color: '#333333',
     },
     cardContainer: {
-        marginTop:1,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
         borderRadius: 10,
         padding: 15,
@@ -231,7 +229,7 @@ export const styles=StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5,
+
     },
     cardContent: {
         flex: 1,
@@ -250,9 +248,9 @@ export const styles=StyleSheet.create({
         marginLeft: 10,
     },
     textContainerCards: {
-       marginTop: 30,
-       fontSize: 30,
-        color: '#666666',
+       marginTop: 100,
+       fontSize: 25,
+        color: '#fff',
     },
     backgroundImageDetail: {
         flex: 1,
@@ -262,7 +260,7 @@ export const styles=StyleSheet.create({
         paddingTop: 20, 
     },
     rootDetail2: {
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+        backgroundColor: 'black', 
         padding: 20,
         borderRadius: 10,
     },
@@ -308,6 +306,11 @@ export const styles=StyleSheet.create({
         marginTop: 20,
         backgroundColor: '#e74c3c', 
     },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginVertical: 10,
+    },
     iconLeft: {
         position: 'absolute',
         left: 20,
@@ -322,16 +325,17 @@ export const styles=StyleSheet.create({
         margin: 20,
     },
     buttonJuego: {
-        backgroundColor: '#000', 
+        backgroundColor: '#1E90FF',  
         paddingVertical: 14,
         paddingHorizontal: 24,
         borderRadius: 10,
         marginTop: 20,
-        shadowColor: '#FFC300', 
+        shadowColor: '#4682B4',  
         shadowOpacity: 0.8,
         shadowOffset: { width: 2, height: 2 },
         shadowRadius: 4,
-        elevation: 5,
+        elevation: 5,  
+        justifyContent: 'center', 
       },
       buttonTextJuego: {
         fontSize: 18,

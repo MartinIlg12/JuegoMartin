@@ -33,6 +33,7 @@ import { StyleSheet } from 'react-native';
             height: '100%',
             resizeMode: 'cover',
         },
+        
         playerName: {
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             color: '#fff',

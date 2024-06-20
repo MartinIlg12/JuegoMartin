@@ -1,15 +1,20 @@
-import React from "react";
-import 'react-native-gesture-handler';
-import { PaperProvider } from "react-native-paper";
-import { NavigationContainer } from "@react-navigation/native";
-import { StackNavigator } from "./src/navigator/StackNavigator";
-const App = ()=>{
-  return(
+// App.js
+import React, { useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { PaperProvider } from 'react-native-paper';
+import { StackNavigator } from './src/navigator/StackNavigator';
+
+
+const App = () => {
+
+
+  return (
     <NavigationContainer>
-    <PaperProvider>
-      <StackNavigator/>
-    </PaperProvider>
+      <PaperProvider>
+        <StackNavigator />
+      </PaperProvider>
     </NavigationContainer>
-  )
-}
+  );
+};
+
 export default App;

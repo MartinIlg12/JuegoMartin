@@ -1,16 +1,15 @@
-import React from 'react';
-import { View, TouchableWithoutFeedback  } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, TouchableWithoutFeedback } from 'react-native';
 import { IconButton, Text } from 'react-native-paper';
-import { styles } from '../../../theme/styles';
-import { Message } from '../HomeScreen';
 import { CommonActions, useNavigation } from '@react-navigation/native';
+import { Message } from '../HomeScreen';
+import { styles } from '../../../theme/styles';
 
-//Interface props
 interface Props {
     message: Message;
 }
 
-export const MessageCardComponent = ({message}: Props) => {
+export const MessageCardComponent = ({ message }: Props) => {
     const navigation = useNavigation();
 
     const navigateToDetail = () => {
@@ -21,12 +20,12 @@ export const MessageCardComponent = ({message}: Props) => {
         <TouchableWithoutFeedback onPress={navigateToDetail}>
             <View style={styles.cardContainer}>
                 <View style={styles.cardContent}>
-                    <Text style={styles.labelLargeCard}>Para: {message.to} </Text>
+                    <Text style={styles.labelLargeCard}>Para: {message.to}</Text>
                     <Text style={styles.bodyMedium}>Asunto: {message.subject}</Text>
                 </View>
                 <View style={styles.iconContainerCard}>
                     <IconButton
-                        icon="email-edit"
+                        icon="eye"
                         size={25}
                         onPress={navigateToDetail}
                     />
@@ -34,4 +33,4 @@ export const MessageCardComponent = ({message}: Props) => {
             </View>
         </TouchableWithoutFeedback>
     );
-}
+};

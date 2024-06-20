@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, View, ImageBackground, Image, TouchableOpacity } from 'react-native';
-import { Avatar, Button, Divider, FAB, IconButton, Modal, Portal, Text, TextInput } from 'react-native-paper';
+import { Avatar, Button, Divider, IconButton, Modal, Portal, Text, TextInput } from 'react-native-paper';
 import firebase, { signOut, updateProfile } from 'firebase/auth';
 import { auth, dbRealTime } from '../../configs/firebaseConfig';
 import { MessageCardComponent } from './components/MessageCardComponent';
@@ -8,61 +8,50 @@ import { NewMessageComponent } from './components/NewMessageComponent';
 import { onValue, ref } from 'firebase/database';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from '../../theme/styles'; // Asegúrate de importar tus estilos
+import { styles } from '../../theme/styles';
 
-// Interface - formulario perfil
+// Interface para el formulario de perfil
 interface FormUser {
     name: string;
 }
 
-// Interface - Message
+// Interface para el mensaje
 export interface Message {
     id: string;
     to: string;
     subject: string;
     message: string;
+    userId: string; 
+    
 }
 
 export const HomeScreen = () => {
-    // hook useState: manipular el formulario del perfil de usuario
     const [formUser, setFormUser] = useState<FormUser>({
         name: ''
     });
 
-    // hook useState: capturar la data del usuario logueado
     const [userAuth, setUserAuth] = useState<firebase.User | null>(null);
-
-    // hook useState: lista de mensajes
     const [messages, setMessages] = useState<Message[]>([]);
-
-    // hook useState: puntaje de "Química"
     const [overallScore, setOverallScore] = useState<number | null>(null);
 
-    // useEffect: capturar la data del usuario autenticado
     useEffect(() => {
-        // Obtener la data del usuario autenticado
         setUserAuth(auth.currentUser);
         setFormUser({ name: auth.currentUser?.displayName ?? "" });
-        // Función para listar mensajes
-        getAllMessages();
-        getOverallScore(); // Llamar la función para obtener el puntaje de "Química"
+        getAllMessages(); 
+        getOverallScore(); 
     }, []);
 
-    // hook useState: mostrar u ocultar el modal del perfil
     const [showModalProfile, setShowModalProfile] = useState<boolean>(false);
-
-    // hook useState: mostrar u ocultar el modal del message
     const [showModalMessage, setShowModalMessage] = useState<boolean>(false);
 
-    // hook navegación
     const navigation = useNavigation();
 
-    // Función para cambiar los datos del formulario
+
     const handlerSetValues = (key: string, value: string) => {
         setFormUser({ ...formUser, [key]: value });
     }
 
-    // Función actualizar la data del usuario autenticado
+    // Función para actualizar el perfil del usuario
     const handlerUpdateUser = async () => {
         await updateProfile(userAuth!, {
             displayName: formUser.name
@@ -70,30 +59,27 @@ export const HomeScreen = () => {
         setShowModalProfile(false);
     }
 
-    // Función para acceder a la data
+    // Función para obtener todos los mensajes de todos los usuarios
     const getAllMessages = () => {
-        // Refrencia a la BDD - tabla
-        const dbRef = ref(dbRealTime, 'messages/' + auth.currentUser?.uid);
-        // Consultamos a la BDD
+        const dbRef = ref(dbRealTime, 'messages'); // Referencia a todos los mensajes
         onValue(dbRef, (snapshot) => {
-            // Capturar la data
-            const data = snapshot.val(); // formato esperado
-            // Controlar que la data tenga información
-            if (!data) return;
-            // Obtener keys de los mensajes
-            const getKeys = Object.keys(data);
-            // Crear un arreglo para almacenar los mensajes de la BDD
-            const listMessages: Message[] = [];
-            getKeys.forEach((key) => {
-                const value = { ...data[key], id: key };
-                listMessages.push(value);
+            const data = snapshot.val();
+            if (!data) {
+                setMessages([]); // Si no hay datos, establece un array vacío de mensajes
+                return;
+            }
+            const allMessages: Message[] = [];
+            Object.keys(data).forEach((userId) => {
+                Object.keys(data[userId]).forEach((messageId) => {
+                    const message = { ...data[userId][messageId], id: messageId, userId }; // Incluir userId
+                    allMessages.push(message);
+                });
             });
-            // Almacenar en el arreglo del hook
-            setMessages(listMessages);
+            setMessages(allMessages); // Establece todos los mensajes obtenidos en el estado
         });
     }
 
-    // Función para obtener el puntaje de Puntaje
+    // Función para obtener la puntuación general del usuario
     const getOverallScore = () => {
         if (auth.currentUser) {
             const scoreRef = ref(dbRealTime, `users/${auth.currentUser.uid}/overallScore`);
@@ -112,17 +98,25 @@ export const HomeScreen = () => {
         navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] }));
     }
 
+    // Navegar a DetailMessageScreen
+    const navigateToDetailMessage = (message: Message) => {
+        navigation.dispatch(CommonActions.navigate({
+            name: 'DetailMessage',
+            params: { message, isOwner: message.userId === auth.currentUser?.uid } // Pasar isOwner para indicar si el usuario actual es el propietario del mensaje
+        }));
+    }
+
     return (
         <>
             <ImageBackground
-                source={{ uri: 'https://i.pinimg.com/564x/08/d7/be/08d7be00d40aac61f47717b10fbb32a8.jpg' }}
+                source={{ uri: 'https://i.pinimg.com/736x/d7/44/66/d74466ac99f76d24af3469db71cf2969.jpg' }}
                 style={styles.backgroundImage}
                 imageStyle={{ opacity: 0.4 }}
             >
                 <View style={styles.routeHome}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Image
-                            source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9U8oJgaoX_sKBGkRSLz-ZJhD7Pbwd3uwMIA&s' }} // Reemplaza con la URL de tu imagen
+                            source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9U8oJgaoX_sKBGkRSLz-ZJhD7Pbwd3uwMIA&s' }}
                             style={styles.iconImageProfile}
                         />
                         <View style={styles.textContainer}>
@@ -132,7 +126,7 @@ export const HomeScreen = () => {
                             <Text style={styles.bodySmall}>Química: {overallScore !== null ? `${overallScore}/100` : 'Cargando...'}</Text>
                         </View>
                         <Image
-                            source={{ uri: 'https://thumbs.dreamstime.com/b/modern-mountain-goat-head-logo-creative-concept-vector-format-scalable-to-any-size-modern-mountain-goat-head-logo-creative-193184152.jpg' }} 
+                            source={{ uri: 'https://thumbs.dreamstime.com/b/modern-mountain-goat-head-logo-creative-concept-vector-format-scalable-to-any-size-modern-mountain-goat-head-logo-creative-193184152.jpg' }}
                             style={styles.iconImage}
                         />
                     </View>
@@ -145,14 +139,19 @@ export const HomeScreen = () => {
                             <MaterialIcons name="goat" size={20} style={styles.iconCabra} /> Que empiece el Partido <MaterialIcons name="goat" size={20} style={styles.iconCabra} />
                         </Text>
                     </TouchableOpacity>
-                    <Text style={styles.textContainerCards}>Mensajes</Text>
+                    <Text style={styles.textContainerCards}>Mensajes de la Comunidad</Text>
                     <FlatList
                         data={messages}
-                        renderItem={({ item }) => <MessageCardComponent message={item} />}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity onPress={() => navigateToDetailMessage(item)}>
+                                <MessageCardComponent message={item} />
+                            </TouchableOpacity>
+                        )}
                         keyExtractor={item => item.id}
                     />
-
                 </View>
+
+                {/* Botones de acción */}
                 <IconButton
                     size={40} icon="account-edit" style={styles.avatarLogOut}
                     onPress={() => setShowModalProfile(true)}
@@ -167,6 +166,7 @@ export const HomeScreen = () => {
                     style={styles.avatarLogOut}
                     onPress={handlerSignOut}
                 />
+
 
                 <Portal>
                     <Modal visible={showModalProfile} contentContainerStyle={styles.modal}>
@@ -197,10 +197,8 @@ export const HomeScreen = () => {
                         <Button mode='contained' onPress={handlerUpdateUser} style={styles.buttonModal} labelStyle={styles.buttonTextModal}>Actualizar</Button>
                     </Modal>
                 </Portal>
-
                 <NewMessageComponent showModalMessage={showModalMessage} setShowModalMessage={setShowModalMessage} />
             </ImageBackground>
-            
         </>
     )
 }

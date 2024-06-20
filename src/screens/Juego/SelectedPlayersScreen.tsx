@@ -71,10 +71,9 @@ const SelectedPlayersScreen: React.FC<SelectedPlayersScreenProps> = ({ route }) 
             const userScoreRef = ref(dbRealTime, `users/${auth.currentUser.uid}/overallScore`);
             set(userScoreRef, score)
                 .then(() => {
-                    //console.log("Overall score saved successfully!");
                 })
                 .catch((error) => {
-                    //console.error("Error saving overall score: ", error);
+
                 });
         }
     };

@@ -1,62 +1,123 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, ImageBackground } from 'react-native';
 import { Button, Divider, IconButton, Text, TextInput } from 'react-native-paper';
-import { styles } from '../../theme/styles';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import { Message } from './HomeScreen';
 import { ref, remove, update } from 'firebase/database';
 import { dbRealTime, auth } from '../../configs/firebaseConfig';
+import { styles } from '../../theme/styles';
+import Modal from 'react-native-modal';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+
+interface CustomAlertProps {
+    isVisible: boolean;
+    onClose: () => void;
+    message: string;
+    isSuccess: boolean;
+}
+
+const CustomAlert: React.FC<CustomAlertProps> = ({ isVisible, onClose, message, isSuccess }) => {
+    return (
+        <Modal isVisible={isVisible} backdropOpacity={0.7} animationIn="zoomInDown" animationOut="zoomOutUp">
+            <View style={alertStyles.modalContent}>
+                <Text style={alertStyles.message}>{message}</Text>
+                <TouchableOpacity onPress={onClose} style={[alertStyles.button, isSuccess ? alertStyles.buttonAdded : alertStyles.buttonDefault]}>
+                    <Text style={alertStyles.buttonText}>Aceptar</Text>
+                </TouchableOpacity>
+            </View>
+        </Modal>
+    );
+};
+
+const alertStyles = StyleSheet.create({
+    modalContent: {
+        backgroundColor: '#1e272e',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+        elevation: 5,
+    },
+    message: {
+        marginBottom: 20,
+        fontSize: 18,
+        color: '#f5f6fa',
+        textAlign: 'center',
+    },
+    button: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+    },
+    buttonDefault: {
+        backgroundColor: '#ff4757',
+    },
+    buttonAdded: {
+        backgroundColor: '#3498db',
+    },
+    buttonText: {
+        color: '#f5f6fa',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+});
 
 export const DetailMessageScreen = () => {
-    //hook para capturar los parametros mediante navegación
-    const route = useRoute();
-    //@ts-ignore
-    const { message } = route.params;
-    //console.log(message);
-
-    //hook useState: manipular el formulario
-    const [editFormMessage, setEditFormMessage] = useState<Message>({
-        id: '',
-        to: '',
-        subject: '',
-        message: ''
-    })
-
-    //hook useEffect: Mostrar la información recibida en el formulario
-    useEffect(() => {
-        setEditFormMessage(message)
-    }, [])
-
-    //hook navegación
     const navigation = useNavigation();
+    const route = useRoute();
+    const { message } = route.params as { message: Message };
 
-    //Funición: cambiar los datos del formulario
-    const handlerSetValues = (key: string, value: string) => {
-        setEditFormMessage({ ...editFormMessage, [key]: value })
+    const [editFormMessage, setEditFormMessage] = useState<Message>({
+        id: message.id,
+        to: message.to,
+        subject: message.subject,
+        message: message.message,
+        userId: message.userId
+    });
+
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [alertVisible, setAlertVisible] = useState<boolean>(false);
+    const [alertMessage, setAlertMessage] = useState<string>('');
+    const [alertSuccess, setAlertSuccess] = useState<boolean>(true);
+    const isOwner = auth.currentUser?.uid === message.userId;
+
+    const handleUpdateMessage = async () => {
+        try {
+            await update(ref(dbRealTime, `messages/${editFormMessage.userId}/${editFormMessage.id}`), {
+                to: editFormMessage.to,
+                subject: editFormMessage.subject,
+                message: editFormMessage.message
+            });
+            setIsEditing(false);
+            setAlertMessage('Mensaje Actualizado');
+            setAlertSuccess(true);
+            setAlertVisible(true);
+        } catch (error) {
+            console.error('Error updating message:', error);
+            setAlertMessage('An error occurred while updating the message.');
+            setAlertSuccess(false);
+            setAlertVisible(true);
+        }
     }
 
-    //Función actualizar la data del mensaje
-    const handlerUpdateMessage = async () => {
-        //1. Referencia a al BDD - tabla
-        const dbRef = ref(dbRealTime, 'messages/' +  auth.currentUser?.uid +'/'+ editFormMessage.id)
-        //2. Actualizar data
-        await update(dbRef, { message: editFormMessage.message })
-        navigation.goBack();
-    }
-
-    //Función eliminar la data del mensaje
-    const handlerDeleteMessage = async () => {
-        //1. Referencia a la BDD - tabla
-        const dbRef = ref(dbRealTime, 'messages/' +  auth.currentUser?.uid +'/'+ editFormMessage.id)
-        //2. Eliminar data
-        await remove(dbRef);
-        navigation.goBack();
+    const handleDeleteMessage = async () => {
+        try {
+            await remove(ref(dbRealTime, `messages/${message.userId}/${message.id}`));
+            navigation.dispatch(CommonActions.goBack());
+        } catch (error) {
+            console.error('Error deleting message:', error);
+            setAlertMessage('An error occurred while deleting the message.');
+            setAlertSuccess(false);
+            setAlertVisible(true);
+        }
     }
 
     return (
         <ImageBackground
-            source={{ uri: 'https://i.pinimg.com/564x/c2/23/dd/c223dda08c1cb10fb942a0bb5506884f.jpg' }}
+            source={{ uri: 'https://pbs.twimg.com/media/F-R2owPXoAAsjpg?format=jpg&name=4096x4096' }}
             style={[styles.backgroundImageDetail, { opacity: 0.7 }]}
         >
             <View style={styles.rootDetail2}>
@@ -77,35 +138,60 @@ export const DetailMessageScreen = () => {
                     <Divider style={styles.divider} />
                 </View>
                 <View style={{ marginBottom: 20 }}>
-                    <Text style={styles.textLabel}>Mensaje</Text>
+                    <Text style={styles.textLabel}>Mensaje:</Text>
                     <TextInput
                         value={editFormMessage.message}
-                        onChangeText={(value) => handlerSetValues('message', value)}
+                        onChangeText={(value) => setEditFormMessage({ ...editFormMessage, message: value })}
                         multiline={true}
                         numberOfLines={5}
                         style={styles.input}
-                        placeholderTextColor="#ffffff80"
-                        theme={{ colors: { text: 'white', placeholder: '#ffffff', primary: '#ffffff' } }}
-                        outlineColor="rgba(255, 255, 255, 0.5)"
-                        activeOutlineColor="#ffffff"
+                        placeholderTextColor="#ffff"
+                        theme={{ colors: { text: '#fff', placeholder: '#ffffff', primary: '#ffffff' } }}
+                        outlineColor="#ffff"
+                        disabled={!isOwner}
                     />
                 </View>
-                <Button
-                    mode='contained'
-                    icon='email-sync'
-                    onPress={handlerUpdateMessage}
-                    style={styles.buttonDetailAdd}>
-                    Actualizar
-                </Button>
-                <Button
-                    mode='contained'
-                    icon='email-remove'
-                    onPress={handlerDeleteMessage}
-                    style={styles.buttonDetailDelete}>
-                    Eliminar
-                </Button>
+                {isOwner && !isEditing && (
+                    <View style={styles.buttonContainer}>
+                        <Button
+                            mode='contained'
+                            icon='email-sync'
+                            onPress={() => setIsEditing(true)}
+                            style={styles.buttonDetailAdd}
+                        >
+                            Editar
+                        </Button>
+                        <Button
+                            mode='contained'
+                            icon='email-remove'
+                            onPress={handleDeleteMessage}
+                            style={styles.buttonDetailDelete}
+                        >
+                            Eliminar
+                        </Button>
+                    </View>
+                )}
+                {isOwner && isEditing && (
+                    <Button
+                        mode='contained'
+                        onPress={handleUpdateMessage}
+                        style={styles.buttonDetailAdd}
+                    >
+                        Actualizar
+                    </Button>
+                )}
             </View>
+            <CustomAlert
+                isVisible={alertVisible}
+                onClose={() => {
+                    setAlertVisible(false);
+                    if (alertSuccess) {
+                        navigation.dispatch(CommonActions.navigate({ name: 'Home' }));
+                    }
+                }}
+                message={alertMessage}
+                isSuccess={alertSuccess}
+            />
         </ImageBackground>
     );
 }
-
