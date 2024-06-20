@@ -151,7 +151,6 @@ export const HomeScreen = () => {
                     />
                 </View>
 
-                {/* Botones de acción */}
                 <IconButton
                     size={40} icon="account-edit" style={styles.avatarLogOut}
                     onPress={() => setShowModalProfile(true)}
