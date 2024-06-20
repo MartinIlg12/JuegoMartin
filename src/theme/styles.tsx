@@ -34,7 +34,7 @@ export const styles=StyleSheet.create({
         justifyContent: 'center',
     },
     inputs: {
-        backgroundColor: 'black', 
+        backgroundColor: 'rgba(255, 255, 255, 0.3)', 
         width: '90%', 
         color: '#000',
         borderRadius: 10,
